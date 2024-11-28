@@ -1,0 +1,58 @@
+*** Settings ***
+Library    RequestsLibrary
+Library    Collections
+
+*** Variables ***
+${API_URL}      http://proxy/articles
+${ARTICLE_X}    {"title":"Article X","content":"Content for Article X"}
+${HEADERS}      Content-Type=application/json
+
+*** Test Cases ***
+Manage Article X
+    ${response}=  GET  ${API_URL}  expected_status=200
+    ${articles_list}=  Set Variable  ${response.json()}
+    Log  ${articles_list}
+    Should Not Contain Article  ${articles_list}  Article X
+
+    ${response}=  POST  ${API_URL}  data=${ARTICLE_X}  headers=${HEADERS}  expected_status=201
+
+    ${response}=  GET  ${API_URL}  expected_status=200
+    ${articles_list}=  Set Variable  ${response.json()}
+    Log  ${articles_list}
+    Should Contain Article  ${articles_list}  Article X
+
+    ${article_id}=  Get Article Id  ${articles_list}  Article X
+    ${response}=  DELETE  ${API_URL}/${article_id}  expected_status=200
+
+    ${response}=  GET  ${API_URL}  expected_status=200
+    ${articles_list}=  Set Variable  ${response.json()}
+    Log  ${articles_list}
+    Should Not Contain Article  ${articles_list}  Article X
+
+*** Keywords ***
+Should Not Contain Article
+    [Arguments]  ${articles_list}  ${title}
+    ${found}=  Set Variable  0
+    FOR  ${article}  IN  @{articles_list}
+        ${article_title}=  Get From Dictionary  ${article}  title
+        Run Keyword If  "${article_title}" == "${title}"  Set Variable  ${found}  1
+    END
+    Should Be Equal As Numbers  ${found}  0
+
+Should Contain Article
+    [Arguments]  ${articles_list}  ${title}
+    ${found}=  Set Variable  0
+    FOR  ${article}  IN  @{articles_list}
+        ${article_title}=  Get From Dictionary  ${article}  title
+        Run Keyword If  "${article_title}" == "${title}"  Set Variable  ${found}  1
+    END
+    Should Be Equal As Numbers  ${found}  1
+
+Get Article Id
+    [Arguments]  ${articles_list}  ${title}
+    FOR  ${article}  IN  @{articles_list}
+        ${article_title}=  Get From Dictionary  ${article}  title
+        ${article_id}=  Get From Dictionary  ${article}  id
+        Run Keyword If  "${article_title}" == "${title}"  Return From Keyword  ${article_id}
+    END
+    Fail  Article with title "${title}" not found

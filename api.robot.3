@@ -1,0 +1,20 @@
+*** Settings ***
+Library    RequestsLibrary
+
+*** Variables ***
+${API_URL}      http://proxy/articles
+${NON_EXISTENT_ID}    99999 
+${ARTICLE_X}    {"title":"Article X","content":"Content for Article X"}
+${HEADERS}      Content-Type=application/json
+
+*** Test Cases ***
+Verify Get Request
+    ${response}=  GET  http://proxy/health  expected_status=200
+
+Verify Post Request
+    ${headers}=  Create Dictionary  Content-Type=application/json
+    ${response}=  POST  ${API_URL}  data=${ARTICLE_X}  headers=${headers}  expected_status=201
+
+Attempt To Delete Non-Existent Article
+    ${response}=  DELETE  ${API_URL}/${NON_EXISTENT_ID}  expected_status=404
+    Log  Response: ${response.status_code}
