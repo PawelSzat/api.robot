@@ -3,6 +3,27 @@ Library    RequestsLibrary
 Library    Collections   
 Library    OperatingSystem  
 
+*** Keywords ***
+Open Website
+    [Arguments]    ${url}
+    Open Available Browser    ${url}    browser=chrome
+
+Click Element
+    [Arguments]    ${locator}
+    Click Element    ${locator}
+
+Input Text
+    [Arguments]    ${locator}    ${text}
+    Input Text    ${locator}    ${text}
+
+Submit Form
+    [Arguments]    ${locator}
+    Submit Form    ${locator}
+
+Close Browser
+    [Arguments]
+    Close Browser
+
 *** Test Cases ***
 Verify Get Request
     ${response}=  GET  http://proxy/health  expected_status=200
